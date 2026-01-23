@@ -39,12 +39,8 @@ type BatchInput = {
 
 const getUtil = <T extends keyof typeof sdkUtils>(key: T) => {
   const direct = sdkUtils[key];
-  if (direct) {
+  if (direct !== undefined) {
     return direct;
-  }
-  const fallback = (sdkUtils as { default?: Record<string, unknown> }).default?.[key as string];
-  if (fallback) {
-    return fallback as typeof sdkUtils[T];
   }
   throw new Error(`Missing SDK util: ${String(key)}`);
 };
