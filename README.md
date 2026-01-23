@@ -15,15 +15,15 @@ Environment variables:
 - `ONEMONEY_PROTOCOL_NETWORK`: `testnet`, `mainnet`, or `local` (default: `testnet`)
 - `ONEMONEY_PROTOCOL_BASE_URL`: override the network base URL
 - `ONEMONEY_PROTOCOL_TIMEOUT_MS`: request timeout in ms (default: `10000`)
-- `ONEMONEY_PROTOCOL_HEADERS`: JSON string of headers to include in all requests
+- `ONEMONEY_PROTOCOL_HEADERS`: optional JSON string of headers to include in all requests (only needed for custom gateways/proxies)
 
 Example:
 
 ```bash
 export ONEMONEY_PROTOCOL_NETWORK=testnet
 export ONEMONEY_PROTOCOL_TIMEOUT_MS=15000
-export ONEMONEY_PROTOCOL_HEADERS='{"Authorization":"Bearer YOUR_TOKEN"}'
 ```
+Most users can omit `ONEMONEY_PROTOCOL_HEADERS`.
 
 ## Integration
 
@@ -38,8 +38,7 @@ After installation, add your configuration to `~/.cursor/mcp.json`:
       "command": "npx",
       "args": ["-y", "@1money/network-mcp"],
       "env": {
-        "ONEMONEY_PROTOCOL_NETWORK": "testnet",
-        "ONEMONEY_PROTOCOL_HEADERS": "{\"Authorization\":\"Bearer YOUR_TOKEN\"}"
+        "ONEMONEY_PROTOCOL_NETWORK": "testnet"
       }
     }
   }
@@ -51,7 +50,7 @@ After installation, add your configuration to `~/.cursor/mcp.json`:
 Run the following command in your terminal:
 
 ```bash
-claude mcp add --transport stdio 1money-network --env ONEMONEY_PROTOCOL_NETWORK=testnet --env ONEMONEY_PROTOCOL_HEADERS='{"Authorization":"Bearer YOUR_TOKEN"}' -- npx -y @1money/network-mcp
+claude mcp add --transport stdio 1money-network --env ONEMONEY_PROTOCOL_NETWORK=testnet -- npx -y @1money/network-mcp
 ```
 
 ### Claude Desktop
@@ -68,8 +67,7 @@ Windows: `%APPDATA%\\Claude\\claude_desktop_config.json`
       "command": "npx",
       "args": ["-y", "@1money/network-mcp"],
       "env": {
-        "ONEMONEY_PROTOCOL_NETWORK": "testnet",
-        "ONEMONEY_PROTOCOL_HEADERS": "{\"Authorization\":\"Bearer YOUR_TOKEN\"}"
+        "ONEMONEY_PROTOCOL_NETWORK": "testnet"
       }
     }
   }
@@ -84,7 +82,7 @@ Add the MCP server to your Codex config file, then restart Codex:
 [mcp_servers.1money-network]
 command = "npx"
 args = ["-y", "@1money/network-mcp"]
-env = { ONEMONEY_PROTOCOL_NETWORK = "testnet", ONEMONEY_PROTOCOL_HEADERS = "{\"Authorization\":\"Bearer YOUR_TOKEN\"}" }
+env = { ONEMONEY_PROTOCOL_NETWORK = "testnet" }
 ```
 
 ## Example Tool Calls
