@@ -1,0 +1,559 @@
+{
+  "accounts.get_nonce": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "address": { "type": "string" }
+    },
+    "required": ["address"]
+  },
+  "accounts.get_bbnonce": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "address": { "type": "string" }
+    },
+    "required": ["address"]
+  },
+  "accounts.get_token_account": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "address": { "type": "string" },
+      "token": { "type": "string" }
+    },
+    "required": ["address", "token"]
+  },
+  "chain.get_chain_id": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  },
+  "checkpoints.get_number": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  },
+  "checkpoints.get_by_hash": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "hash": { "type": "string" },
+      "full": { "type": "boolean" }
+    },
+    "required": ["hash"]
+  },
+  "checkpoints.get_by_number": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "number": { "type": ["number", "string"] },
+      "full": { "type": "boolean" }
+    },
+    "required": ["number"]
+  },
+  "checkpoints.get_receipts_by_number": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "number": { "type": ["number", "string"] }
+    },
+    "required": ["number"]
+  },
+  "tokens.get_token_metadata": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "token": { "type": "string" }
+    },
+    "required": ["token"]
+  },
+  "tokens.manage_blacklist": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "request": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "chain_id": { "type": "number" },
+          "nonce": { "type": "number" },
+          "action": { "type": "string", "enum": ["Add", "Remove"] },
+          "address": { "type": "string" },
+          "token": { "type": "string" },
+          "signature": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "r": { "type": "string" },
+              "s": { "type": "string" },
+              "v": { "type": ["number", "boolean"] }
+            },
+            "required": ["r", "s", "v"]
+          }
+        },
+        "required": ["chain_id", "nonce", "action", "address", "token", "signature"]
+      }
+    },
+    "required": ["request"]
+  },
+  "tokens.manage_whitelist": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "request": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "chain_id": { "type": "number" },
+          "nonce": { "type": "number" },
+          "action": { "type": "string", "enum": ["Add", "Remove"] },
+          "address": { "type": "string" },
+          "token": { "type": "string" },
+          "signature": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "r": { "type": "string" },
+              "s": { "type": "string" },
+              "v": { "type": ["number", "boolean"] }
+            },
+            "required": ["r", "s", "v"]
+          }
+        },
+        "required": ["chain_id", "nonce", "action", "address", "token", "signature"]
+      }
+    },
+    "required": ["request"]
+  },
+  "tokens.burn": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "request": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "chain_id": { "type": "number" },
+          "nonce": { "type": "number" },
+          "recipient": { "type": "string" },
+          "value": { "type": "string" },
+          "token": { "type": "string" },
+          "signature": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "r": { "type": "string" },
+              "s": { "type": "string" },
+              "v": { "type": ["number", "boolean"] }
+            },
+            "required": ["r", "s", "v"]
+          }
+        },
+        "required": ["chain_id", "nonce", "recipient", "value", "token", "signature"]
+      }
+    },
+    "required": ["request"]
+  },
+  "tokens.grant_authority": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "request": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "chain_id": { "type": "number" },
+          "nonce": { "type": "number" },
+          "action": { "type": "string", "enum": ["Grant", "Revoke"] },
+          "authority_type": {
+            "type": "string",
+            "enum": ["MasterMintBurn", "MintBurnTokens", "Pause", "ManageList", "UpdateMetadata", "Bridge"]
+          },
+          "authority_address": { "type": "string" },
+          "token": { "type": "string" },
+          "value": { "type": "string" },
+          "signature": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "r": { "type": "string" },
+              "s": { "type": "string" },
+              "v": { "type": ["number", "boolean"] }
+            },
+            "required": ["r", "s", "v"]
+          }
+        },
+        "required": ["chain_id", "nonce", "action", "authority_type", "authority_address", "token", "signature"]
+      }
+    },
+    "required": ["request"]
+  },
+  "tokens.issue": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "request": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "chain_id": { "type": "number" },
+          "nonce": { "type": "number" },
+          "symbol": { "type": "string" },
+          "name": { "type": "string" },
+          "decimals": { "type": "number" },
+          "master_authority": { "type": "string" },
+          "is_private": { "type": "boolean" },
+          "signature": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "r": { "type": "string" },
+              "s": { "type": "string" },
+              "v": { "type": ["number", "boolean"] }
+            },
+            "required": ["r", "s", "v"]
+          }
+        },
+        "required": ["chain_id", "nonce", "symbol", "name", "decimals", "master_authority", "is_private", "signature"]
+      }
+    },
+    "required": ["request"]
+  },
+  "tokens.mint": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "request": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "chain_id": { "type": "number" },
+          "nonce": { "type": "number" },
+          "recipient": { "type": "string" },
+          "value": { "type": "string" },
+          "token": { "type": "string" },
+          "signature": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "r": { "type": "string" },
+              "s": { "type": "string" },
+              "v": { "type": ["number", "boolean"] }
+            },
+            "required": ["r", "s", "v"]
+          }
+        },
+        "required": ["chain_id", "nonce", "recipient", "value", "token", "signature"]
+      }
+    },
+    "required": ["request"]
+  },
+  "tokens.pause": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "request": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "chain_id": { "type": "number" },
+          "nonce": { "type": "number" },
+          "action": { "type": "string", "enum": ["Pause", "Unpause"] },
+          "token": { "type": "string" },
+          "signature": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "r": { "type": "string" },
+              "s": { "type": "string" },
+              "v": { "type": ["number", "boolean"] }
+            },
+            "required": ["r", "s", "v"]
+          }
+        },
+        "required": ["chain_id", "nonce", "action", "token", "signature"]
+      }
+    },
+    "required": ["request"]
+  },
+  "tokens.update_metadata": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "request": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "chain_id": { "type": "number" },
+          "nonce": { "type": "number" },
+          "name": { "type": "string" },
+          "uri": { "type": "string" },
+          "token": { "type": "string" },
+          "additional_metadata": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "key": { "type": "string" },
+                "value": { "type": "string" }
+              },
+              "required": ["key", "value"]
+            }
+          },
+          "signature": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "r": { "type": "string" },
+              "s": { "type": "string" },
+              "v": { "type": ["number", "boolean"] }
+            },
+            "required": ["r", "s", "v"]
+          }
+        },
+        "required": ["chain_id", "nonce", "name", "uri", "token", "additional_metadata", "signature"]
+      }
+    },
+    "required": ["request"]
+  },
+  "tokens.bridge_and_mint": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "request": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "chain_id": { "type": "number" },
+          "nonce": { "type": "number" },
+          "recipient": { "type": "string" },
+          "value": { "type": "string" },
+          "token": { "type": "string" },
+          "source_chain_id": { "type": "number" },
+          "source_tx_hash": { "type": "string" },
+          "bridge_metadata": { "type": "string" },
+          "signature": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "r": { "type": "string" },
+              "s": { "type": "string" },
+              "v": { "type": ["number", "boolean"] }
+            },
+            "required": ["r", "s", "v"]
+          }
+        },
+        "required": ["chain_id", "nonce", "recipient", "value", "token", "source_chain_id", "source_tx_hash", "bridge_metadata", "signature"]
+      }
+    },
+    "required": ["request"]
+  },
+  "tokens.burn_and_bridge": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "request": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "bridge_metadata": { "type": "string" },
+          "chain_id": { "type": "number" },
+          "destination_address": { "type": "string" },
+          "destination_chain_id": { "type": "number" },
+          "escrow_fee": { "type": "string" },
+          "nonce": { "type": "number" },
+          "sender": { "type": "string" },
+          "token": { "type": "string" },
+          "value": { "type": "string" },
+          "signature": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "r": { "type": "string" },
+              "s": { "type": "string" },
+              "v": { "type": ["number", "boolean"] }
+            },
+            "required": ["r", "s", "v"]
+          }
+        },
+        "required": ["bridge_metadata", "chain_id", "destination_address", "destination_chain_id", "escrow_fee", "nonce", "sender", "token", "value", "signature"]
+      }
+    },
+    "required": ["request"]
+  },
+  "transactions.get_by_hash": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "hash": { "type": "string" }
+    },
+    "required": ["hash"]
+  },
+  "transactions.get_receipt_by_hash": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "hash": { "type": "string" }
+    },
+    "required": ["hash"]
+  },
+  "transactions.get_finalized_by_hash": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "hash": { "type": "string" }
+    },
+    "required": ["hash"]
+  },
+  "transactions.estimate_fee": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "from": { "type": "string" },
+      "value": { "type": ["string", "number"] },
+      "token": { "type": "string" }
+    },
+    "required": ["from", "value"]
+  },
+  "transactions.payment": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "request": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "chain_id": { "type": "number" },
+          "nonce": { "type": "number" },
+          "recipient": { "type": "string" },
+          "value": { "type": "string" },
+          "token": { "type": "string" },
+          "signature": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "r": { "type": "string" },
+              "s": { "type": "string" },
+              "v": { "type": ["number", "boolean"] }
+            },
+            "required": ["r", "s", "v"]
+          }
+        },
+        "required": ["chain_id", "nonce", "recipient", "value", "token", "signature"]
+      }
+    },
+    "required": ["request"]
+  },
+  "utils.derive_token_address": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "wallet_address": { "type": "string" },
+      "mint_address": { "type": "string" }
+    },
+    "required": ["wallet_address", "mint_address"]
+  },
+  "utils.sign_message": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "payload": {
+        "type": ["string", "number", "boolean", "object", "array", "null"]
+      },
+      "private_key": { "type": "string" }
+    },
+    "required": ["payload", "private_key"]
+  },
+  "utils.encode_payload": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "payload": {
+        "type": ["string", "number", "boolean", "object", "array", "null"]
+      }
+    },
+    "required": ["payload"]
+  },
+  "utils.to_hex": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "value": {}
+    },
+    "required": ["value"]
+  },
+  "utils.calc_tx_hash": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "payload": {
+        "type": ["string", "number", "boolean", "object", "array", "null"]
+      },
+      "signature": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "r": { "type": "string" },
+          "s": { "type": "string" },
+          "v": { "type": ["number", "boolean"] }
+        },
+        "required": ["r", "s", "v"]
+      }
+    },
+    "required": ["payload", "signature"]
+  },
+  "utils.typeof": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "value": {}
+    },
+    "required": ["value"]
+  },
+  "utils.safe_promise_all": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "calls": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tool": { "type": "string" },
+            "input": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "required": ["tool", "input"]
+        }
+      }
+    },
+    "required": ["calls"]
+  },
+  "utils.safe_promise_line": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "calls": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tool": { "type": "string" },
+            "input": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "required": ["tool", "input"]
+        }
+      }
+    },
+    "required": ["calls"]
+  }
+}
