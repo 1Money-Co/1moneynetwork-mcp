@@ -1,4 +1,5 @@
 # 1Money Network MCP
+<img src="./public/logo.png" alt="1Money Logo" width="200"/> 
 
 MCP (stdio) server for the 1Money Network Protocol, backed by `@1money/protocol-ts-sdk`.
 
