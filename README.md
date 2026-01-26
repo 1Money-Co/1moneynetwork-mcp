@@ -18,7 +18,7 @@ Environment variables:
 - `ONEMONEY_PROTOCOL_TIMEOUT_MS`: request timeout in ms (default: `10000`)
 - `ONEMONEY_PROTOCOL_HEADERS`: optional JSON string of headers to include in all requests (only needed for custom gateways/proxies)
 
-Example:
+Example `.env` file (see `.env.example`):
 
 ```bash
 export ONEMONEY_PROTOCOL_NETWORK=testnet
