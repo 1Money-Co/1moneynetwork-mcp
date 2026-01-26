@@ -16,7 +16,9 @@
 
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({
+  quiet: true,
+});
 
 const DEFAULT_NETWORK = "testnet" as const;
 const DEFAULT_TIMEOUT_MS = 10000;
