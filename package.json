@@ -1,12 +1,22 @@
 {
   "name": "@1money/network-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "publishConfig": {
     "access": "public"
   },
+  "bin": {
+    "1moneynetwork-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "schemas",
+    "public",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/index.ts",
