@@ -19,7 +19,7 @@ import * as sdkUtils from "@1money/protocol-ts-sdk/utils";
 
 import type { ProtocolClient } from "../client.js";
 import { formatError } from "../errors.js";
-import type { ToolName } from "../schemas/zod.js";
+import { toolSchemas, type ToolName } from "../schemas/zod.js";
 
 /**
  * MCP tool handler signature.
@@ -36,6 +36,13 @@ type BatchCall = {
 type BatchInput = {
   calls: BatchCall[];
 };
+
+// Upper bound on how many nested calls a single batch
+// tool invocation may fan out. Without a cap, one client
+// request can trigger an unbounded number of concurrent
+// HTTP requests and exhaust resources / trip API rate
+// limits for the operator's IP.
+const MAX_BATCH_CALLS = 50;
 
 const getUtil = <T extends keyof typeof sdkUtils>(key: T) => {
   const direct = sdkUtils[key];
@@ -89,6 +96,18 @@ export const createHandlers = (client: ProtocolClient): Record<ToolName, ToolHan
       throw new Error(`Unknown tool: ${toolName}`);
     }
 
+    // Direct MCP invocations are validated by their zod
+    // schema in register.ts; nested batch calls bypass
+    // that path entirely, so validate the payload here to
+    // keep every entry point guarded by the same schemas.
+    const schema = toolSchemas[toolName as ToolName];
+    if (schema) {
+      const parsed = schema.safeParse(input);
+      if (!parsed.success) {
+        throw new Error(`Invalid input for ${toolName}`);
+      }
+      return action(parsed.data);
+    }
     return action(input);
   };
 
@@ -250,12 +269,22 @@ export const createHandlers = (client: ProtocolClient): Record<ToolName, ToolHan
 
   actions["utils.safe_promise_all"] = async (input) => {
     const { calls } = input as BatchInput;
+    if (calls.length > MAX_BATCH_CALLS) {
+      throw new Error(
+        `Batch tools accept at most ${MAX_BATCH_CALLS} calls per invocation, got ${calls.length}.`
+      );
+    }
     const promises = calls.map((call) => runAction(call.tool, call.input));
     return Promise.all(promises);
   };
 
   actions["utils.safe_promise_line"] = async (input) => {
     const { calls } = input as BatchInput;
+    if (calls.length > MAX_BATCH_CALLS) {
+      throw new Error(
+        `Batch tools accept at most ${MAX_BATCH_CALLS} calls per invocation, got ${calls.length}.`
+      );
+    }
     const results: unknown[] = [];
     for (const call of calls) {
       try {
