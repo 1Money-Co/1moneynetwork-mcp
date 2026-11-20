@@ -68,320 +68,163 @@
     },
     "required": ["token"]
   },
-  "tokens.manage_blacklist": {
+  "tokens.prepare_issue": {
     "type": "object",
     "additionalProperties": false,
     "properties": {
-      "request": {
+      "unsigned": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "chain_id": { "type": "number" },
-          "nonce": { "type": "number" },
-          "action": { "type": "string", "enum": ["Add", "Remove"] },
-          "address": { "type": "string" },
-          "token": { "type": "string" },
-          "signature": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "r": { "type": "string" },
-              "s": { "type": "string" },
-              "v": { "type": ["number", "boolean"] }
-            },
-            "required": ["r", "s", "v"]
-          }
-        },
-        "required": ["chain_id", "nonce", "action", "address", "token", "signature"]
-      }
-    },
-    "required": ["request"]
-  },
-  "tokens.manage_whitelist": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "request": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "chain_id": { "type": "number" },
-          "nonce": { "type": "number" },
-          "action": { "type": "string", "enum": ["Add", "Remove"] },
-          "address": { "type": "string" },
-          "token": { "type": "string" },
-          "signature": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "r": { "type": "string" },
-              "s": { "type": "string" },
-              "v": { "type": ["number", "boolean"] }
-            },
-            "required": ["r", "s", "v"]
-          }
-        },
-        "required": ["chain_id", "nonce", "action", "address", "token", "signature"]
-      }
-    },
-    "required": ["request"]
-  },
-  "tokens.burn": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "request": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "chain_id": { "type": "number" },
-          "nonce": { "type": "number" },
-          "recipient": { "type": "string" },
-          "value": { "type": "string" },
-          "token": { "type": "string" },
-          "signature": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "r": { "type": "string" },
-              "s": { "type": "string" },
-              "v": { "type": ["number", "boolean"] }
-            },
-            "required": ["r", "s", "v"]
-          }
-        },
-        "required": ["chain_id", "nonce", "recipient", "value", "token", "signature"]
-      }
-    },
-    "required": ["request"]
-  },
-  "tokens.grant_authority": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "request": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "chain_id": { "type": "number" },
-          "nonce": { "type": "number" },
-          "action": { "type": "string", "enum": ["Grant", "Revoke"] },
-          "authority_type": {
-            "type": "string",
-            "enum": ["MasterMintBurn", "MintBurnTokens", "Pause", "ManageList", "UpdateMetadata", "Bridge"]
+          "chain_id": {
+            "type": "number",
+            "description": "Chain id from chain_get_chain_id"
           },
-          "authority_address": { "type": "string" },
-          "token": { "type": "string" },
-          "value": { "type": "string" },
-          "signature": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "r": { "type": "string" },
-              "s": { "type": "string" },
-              "v": { "type": ["number", "boolean"] }
-            },
-            "required": ["r", "s", "v"]
-          }
-        },
-        "required": ["chain_id", "nonce", "action", "authority_type", "authority_address", "token", "signature"]
-      }
-    },
-    "required": ["request"]
-  },
-  "tokens.issue": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "request": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "chain_id": { "type": "number" },
-          "nonce": { "type": "number" },
+          "nonce": {
+            "type": "number",
+            "description": "The signer's next nonce from accounts_get_nonce"
+          },
           "symbol": { "type": "string" },
           "name": { "type": "string" },
           "decimals": { "type": "number" },
           "master_authority": { "type": "string" },
           "is_private": { "type": "boolean" },
-          "signature": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "r": { "type": "string" },
-              "s": { "type": "string" },
-              "v": { "type": ["number", "boolean"] }
-            },
-            "required": ["r", "s", "v"]
-          }
+          "clawback_enabled": { "type": "boolean", "description": "Default true" }
         },
-        "required": ["chain_id", "nonce", "symbol", "name", "decimals", "master_authority", "is_private", "signature"]
-      }
-    },
-    "required": ["request"]
-  },
-  "tokens.mint": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "request": {
+        "required": ["chain_id", "nonce", "symbol", "name", "decimals", "master_authority", "is_private"]
+      },
+      "memo": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "chain_id": { "type": "number" },
-          "nonce": { "type": "number" },
-          "recipient": { "type": "string" },
-          "value": { "type": "string" },
-          "token": { "type": "string" },
-          "signature": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "r": { "type": "string" },
-              "s": { "type": "string" },
-              "v": { "type": ["number", "boolean"] }
-            },
-            "required": ["r", "s", "v"]
-          }
+          "type": { "type": "string" },
+          "format": { "type": "string" },
+          "data": { "type": "string" }
         },
-        "required": ["chain_id", "nonce", "recipient", "value", "token", "signature"]
+        "required": [],
+        "description": "Optional transaction memo"
       }
     },
-    "required": ["request"]
+    "required": ["unsigned"],
+    "description": "Prepare a v2 token issue. Sends nothing. Returns signing_hash: sign it (utils_sign_digest or your own wallet), then call transactions_submit with the returned operation, unsigned and memo, and the signature."
   },
-  "tokens.pause": {
+  "tokens.prepare_burn": {
     "type": "object",
     "additionalProperties": false,
     "properties": {
-      "request": {
+      "unsigned": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "chain_id": { "type": "number" },
-          "nonce": { "type": "number" },
-          "action": { "type": "string", "enum": ["Pause", "Unpause"] },
-          "token": { "type": "string" },
-          "signature": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "r": { "type": "string" },
-              "s": { "type": "string" },
-              "v": { "type": ["number", "boolean"] }
-            },
-            "required": ["r", "s", "v"]
-          }
-        },
-        "required": ["chain_id", "nonce", "action", "token", "signature"]
-      }
-    },
-    "required": ["request"]
-  },
-  "tokens.update_metadata": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "request": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "chain_id": { "type": "number" },
-          "nonce": { "type": "number" },
-          "name": { "type": "string" },
-          "uri": { "type": "string" },
-          "token": { "type": "string" },
-          "additional_metadata": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "key": { "type": "string" },
-                "value": { "type": "string" }
-              },
-              "required": ["key", "value"]
-            }
+          "chain_id": {
+            "type": "number",
+            "description": "Chain id from chain_get_chain_id"
           },
-          "signature": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "r": { "type": "string" },
-              "s": { "type": "string" },
-              "v": { "type": ["number", "boolean"] }
-            },
-            "required": ["r", "s", "v"]
-          }
+          "nonce": {
+            "type": "number",
+            "description": "The signer's next nonce from accounts_get_nonce"
+          },
+          "value": { "type": "string", "description": "Amount in the token's base unit" },
+          "token": { "type": "string", "description": "Token address" }
         },
-        "required": ["chain_id", "nonce", "name", "uri", "token", "additional_metadata", "signature"]
-      }
-    },
-    "required": ["request"]
-  },
-  "tokens.bridge_and_mint": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "request": {
+        "required": ["chain_id", "nonce", "value", "token"]
+      },
+      "memo": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "chain_id": { "type": "number" },
-          "nonce": { "type": "number" },
+          "type": { "type": "string" },
+          "format": { "type": "string" },
+          "data": { "type": "string" }
+        },
+        "required": [],
+        "description": "Optional transaction memo"
+      }
+    },
+    "required": ["unsigned"],
+    "description": "Prepare a v2 burn of the signer's own tokens. Sends nothing. Returns signing_hash: sign it (utils_sign_digest or your own wallet), then call transactions_submit with the returned operation, unsigned and memo, and the signature."
+  },
+  "tokens.prepare_bridge_and_mint": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "unsigned": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "chain_id": {
+            "type": "number",
+            "description": "Chain id from chain_get_chain_id"
+          },
+          "nonce": {
+            "type": "number",
+            "description": "The signer's next nonce from accounts_get_nonce"
+          },
           "recipient": { "type": "string" },
           "value": { "type": "string" },
           "token": { "type": "string" },
           "source_chain_id": { "type": "number" },
           "source_tx_hash": { "type": "string" },
-          "bridge_metadata": { "type": "string" },
-          "signature": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "r": { "type": "string" },
-              "s": { "type": "string" },
-              "v": { "type": ["number", "boolean"] }
-            },
-            "required": ["r", "s", "v"]
-          }
+          "bridge_metadata": { "type": "string" }
         },
-        "required": ["chain_id", "nonce", "recipient", "value", "token", "source_chain_id", "source_tx_hash", "bridge_metadata", "signature"]
-      }
-    },
-    "required": ["request"]
-  },
-  "tokens.burn_and_bridge": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "request": {
+        "required": ["chain_id", "nonce", "recipient", "value", "token", "source_chain_id", "source_tx_hash", "bridge_metadata"]
+      },
+      "memo": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "bridge_metadata": { "type": "string" },
-          "chain_id": { "type": "number" },
-          "destination_address": { "type": "string" },
-          "destination_chain_id": { "type": "number" },
-          "escrow_fee": { "type": "string" },
-          "nonce": { "type": "number" },
-          "sender": { "type": "string" },
-          "token": { "type": "string" },
-          "value": { "type": "string" },
-          "signature": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "r": { "type": "string" },
-              "s": { "type": "string" },
-              "v": { "type": ["number", "boolean"] }
-            },
-            "required": ["r", "s", "v"]
-          }
+          "type": { "type": "string" },
+          "format": { "type": "string" },
+          "data": { "type": "string" }
         },
-        "required": ["bridge_metadata", "chain_id", "destination_address", "destination_chain_id", "escrow_fee", "nonce", "sender", "token", "value", "signature"]
+        "required": [],
+        "description": "Optional transaction memo"
       }
     },
-    "required": ["request"]
+    "required": ["unsigned"],
+    "description": "Prepare a v2 bridge-and-mint. Sends nothing. Returns signing_hash: sign it (utils_sign_digest or your own wallet), then call transactions_submit with the returned operation, unsigned and memo, and the signature."
+  },
+  "tokens.prepare_burn_and_bridge": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "unsigned": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "chain_id": {
+            "type": "number",
+            "description": "Chain id from chain_get_chain_id"
+          },
+          "nonce": {
+            "type": "number",
+            "description": "The signer's next nonce from accounts_get_nonce"
+          },
+          "sender": { "type": "string" },
+          "value": { "type": "string" },
+          "token": { "type": "string" },
+          "destination_chain_id": { "type": "number" },
+          "destination_address": { "type": "string" },
+          "escrow_fee": { "type": "string" },
+          "bridge_metadata": { "type": "string" },
+          "bridge_param": { "type": "string", "description": "0x-prefixed hex bytes" }
+        },
+        "required": ["chain_id", "nonce", "sender", "value", "token", "destination_chain_id", "destination_address", "escrow_fee", "bridge_metadata", "bridge_param"]
+      },
+      "memo": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": { "type": "string" },
+          "format": { "type": "string" },
+          "data": { "type": "string" }
+        },
+        "required": [],
+        "description": "Optional transaction memo"
+      }
+    },
+    "required": ["unsigned"],
+    "description": "Prepare a v2 burn-and-bridge. Sends nothing. Returns signing_hash: sign it (utils_sign_digest or your own wallet), then call transactions_submit with the returned operation, unsigned and memo, and the signature."
   },
   "transactions.get_by_hash": {
     "type": "object",
@@ -390,6 +233,15 @@
       "hash": { "type": "string" }
     },
     "required": ["hash"]
+  },
+  "transactions.get_status_by_hash": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "hash": { "type": "string" }
+    },
+    "required": ["hash"],
+    "description": "Read a transaction's status by hash: pending, certified_pending_checkpoint, checkpointed or finalized."
   },
   "transactions.get_receipt_by_hash": {
     "type": "object",
@@ -411,40 +263,90 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {
-      "from": { "type": "string" },
+      "from": { "type": "string", "description": "Sender address" },
+      "to": { "type": "string", "description": "Recipient address" },
       "value": { "type": ["string", "number"] },
-      "token": { "type": "string" }
+      "token": { "type": "string", "description": "Token address" }
     },
-    "required": ["from", "value"]
+    "required": ["from", "to", "value", "token"],
+    "description": "Estimate the fee of a payment."
   },
-  "transactions.payment": {
+  "transactions.prepare_payment": {
     "type": "object",
     "additionalProperties": false,
     "properties": {
-      "request": {
+      "unsigned": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "chain_id": { "type": "number" },
-          "nonce": { "type": "number" },
+          "chain_id": {
+            "type": "number",
+            "description": "Chain id from chain_get_chain_id"
+          },
+          "nonce": {
+            "type": "number",
+            "description": "The signer's next nonce from accounts_get_nonce"
+          },
           "recipient": { "type": "string" },
-          "value": { "type": "string" },
-          "token": { "type": "string" },
-          "signature": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "r": { "type": "string" },
-              "s": { "type": "string" },
-              "v": { "type": ["number", "boolean"] }
-            },
-            "required": ["r", "s", "v"]
-          }
+          "value": { "type": "string", "description": "Amount in the token's base unit" },
+          "token": { "type": "string", "description": "Token address" }
         },
-        "required": ["chain_id", "nonce", "recipient", "value", "token", "signature"]
+        "required": ["chain_id", "nonce", "recipient", "value", "token"]
+      },
+      "memo": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": { "type": "string" },
+          "format": { "type": "string" },
+          "data": { "type": "string" }
+        },
+        "required": [],
+        "description": "Optional transaction memo"
       }
     },
-    "required": ["request"]
+    "required": ["unsigned"],
+    "description": "Prepare a v2 payment. Sends nothing. Returns signing_hash: sign it (utils_sign_digest or your own wallet), then call transactions_submit with the returned operation, unsigned and memo, and the signature."
+  },
+  "transactions.submit": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "operation": {
+        "type": "string",
+        "enum": ["payment", "tokenIssue", "tokenBurn", "tokenBridgeAndMint", "tokenBurnAndBridge"],
+        "description": "The operation a prepare tool returned"
+      },
+      "unsigned": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "The unsigned payload a prepare tool returned, unchanged"
+      },
+      "memo": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": { "type": "string" },
+          "format": { "type": "string" },
+          "data": { "type": "string" }
+        },
+        "required": [],
+        "description": "Optional transaction memo"
+      },
+      "signature": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "r": { "type": "string", "description": "0x-prefixed 32-byte hex" },
+          "s": { "type": "string", "description": "0x-prefixed 32-byte hex, low-S" },
+          "v": { "type": ["number", "boolean"] }
+        },
+        "required": ["r", "s", "v"],
+        "description": "secp256k1 signature of signing_hash"
+      }
+    },
+    "required": ["operation", "unsigned", "signature"],
+    "description": "Authorize a prepared v2 transaction with its signature and send it once to POST /v2. On an error, the result says whether it was submitted (false, true or \"unknown\") and the next step. Never sign the same intent again after submitted true or \"unknown\": read the status by hash first."
   },
   "utils.derive_token_address": {
     "type": "object",
@@ -455,24 +357,24 @@
     },
     "required": ["wallet_address", "mint_address"]
   },
-  "utils.sign_message": {
+  "utils.sign_digest": {
     "type": "object",
     "additionalProperties": false,
     "properties": {
-      "payload": {
-        "type": ["string", "number", "boolean", "object", "array", "null"]
+      "signing_hash": {
+        "type": "string",
+        "description": "0x-prefixed 32-byte digest from a prepare tool"
       },
       "private_key": { "type": "string" }
     },
-    "required": ["payload", "private_key"]
+    "required": ["signing_hash", "private_key"],
+    "description": "Sign a 32-byte digest with a secp256k1 private key. The key passes through this conversation: use it only with test keys."
   },
   "utils.encode_payload": {
     "type": "object",
     "additionalProperties": false,
     "properties": {
-      "payload": {
-        "type": ["string", "number", "boolean", "object", "array", "null"]
-      }
+      "payload": { "type": ["string", "number", "boolean", "object", "array", "null"] }
     },
     "required": ["payload"]
   },
@@ -483,26 +385,6 @@
       "value": {}
     },
     "required": ["value"]
-  },
-  "utils.calc_tx_hash": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "payload": {
-        "type": ["string", "number", "boolean", "object", "array", "null"]
-      },
-      "signature": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "r": { "type": "string" },
-          "s": { "type": "string" },
-          "v": { "type": ["number", "boolean"] }
-        },
-        "required": ["r", "s", "v"]
-      }
-    },
-    "required": ["payload", "signature"]
   },
   "utils.typeof": {
     "type": "object",
@@ -523,10 +405,7 @@
           "additionalProperties": false,
           "properties": {
             "tool": { "type": "string" },
-            "input": {
-              "type": "object",
-              "additionalProperties": true
-            }
+            "input": { "type": "object", "additionalProperties": true }
           },
           "required": ["tool", "input"]
         }
@@ -545,10 +424,7 @@
           "additionalProperties": false,
           "properties": {
             "tool": { "type": "string" },
-            "input": {
-              "type": "object",
-              "additionalProperties": true
-            }
+            "input": { "type": "object", "additionalProperties": true }
           },
           "required": ["tool", "input"]
         }

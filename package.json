@@ -19,6 +19,9 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "check": "pnpm typecheck && pnpm test && pnpm build",
     "dev": "tsx src/index.ts",
     "generate-schemas": "node scripts/generate-schemas.mjs"
   },
@@ -27,7 +30,7 @@
     "url": "https://github.com/1Money-Co/1moneynetwork-mcp"
   },
   "dependencies": {
-    "@1money/protocol-ts-sdk": "1.1.2",
+    "@1money/protocol-ts-sdk": "3.2.0",
     "@ethereumjs/rlp": "^10.0.0",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@noble/secp256k1": "^2.3.0",
@@ -40,7 +43,8 @@
     "@types/node": "^22.19.7",
     "json-schema-to-zod": "^2.7.0",
     "tsx": "^4.7.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "vitest": "3.2.4"
   },
   "pnpm": {
     "overrides": {
