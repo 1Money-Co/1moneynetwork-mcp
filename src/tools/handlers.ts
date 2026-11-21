@@ -87,6 +87,21 @@ type SubmitInput = {
 const isBatchTool = (toolName: string) =>
   toolName === "utils.safe_promise_all" || toolName === "utils.safe_promise_line";
 
+// A batch drops (safe_promise_line) or hides (safe_promise_all) the errors of
+// its calls, so it must never send: a send's outcome (submitted, hash, next
+// step) is what lets the caller avoid signing the same intent twice.
+const SENDING_TOOLS: ReadonlySet<string> = new Set(["transactions_submit"]);
+
+const refuseSendingCalls = (calls: BatchCall[]) => {
+  for (const call of calls) {
+    if (SENDING_TOOLS.has(call.tool.replaceAll(".", "_"))) {
+      throw new Error(
+        `${call.tool} sends a transaction and cannot run in a batch. Nothing was sent. Call it on its own, so its outcome is never lost.`
+      );
+    }
+  }
+};
+
 /**
  * Builds MCP tool handlers backed by the protocol SDK.
  */
@@ -237,12 +252,14 @@ export const createHandlers = (client: ProtocolClient): Record<ToolName, ToolHan
 
   actions["utils.safe_promise_all"] = async (input) => {
     const { calls } = input as BatchInput;
+    refuseSendingCalls(calls);
     const promises = calls.map((call) => runAction(call.tool, call.input));
     return Promise.all(promises);
   };
 
   actions["utils.safe_promise_line"] = async (input) => {
     const { calls } = input as BatchInput;
+    refuseSendingCalls(calls);
     const results: unknown[] = [];
     for (const call of calls) {
       try {

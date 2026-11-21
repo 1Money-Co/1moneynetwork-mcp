@@ -102,10 +102,10 @@ toolSchemas["utils.to_hex"] = UtilsToHexSchema;
 const UtilsTypeofSchema = z.object({ "value": z.any() }).strict()
 toolSchemas["utils.typeof"] = UtilsTypeofSchema;
 
-const UtilsSafePromiseAllSchema = z.object({ "calls": z.array(z.object({ "tool": z.string(), "input": z.record(z.string(), z.any()) }).strict()) }).strict()
+const UtilsSafePromiseAllSchema = z.object({ "calls": z.array(z.object({ "tool": z.string(), "input": z.record(z.string(), z.any()) }).strict()) }).strict().describe("Run tool calls in parallel; fails on the first error. A batch cannot contain transactions.submit: send each transaction on its own, so its outcome is never lost.")
 toolSchemas["utils.safe_promise_all"] = UtilsSafePromiseAllSchema;
 
-const UtilsSafePromiseLineSchema = z.object({ "calls": z.array(z.object({ "tool": z.string(), "input": z.record(z.string(), z.any()) }).strict()) }).strict()
+const UtilsSafePromiseLineSchema = z.object({ "calls": z.array(z.object({ "tool": z.string(), "input": z.record(z.string(), z.any()) }).strict()) }).strict().describe("Run tool calls in order; drops the results of calls that fail. A batch cannot contain transactions.submit: send each transaction on its own, so its outcome is never lost.")
 toolSchemas["utils.safe_promise_line"] = UtilsSafePromiseLineSchema;
 
 export type ToolName = keyof typeof toolSchemas;
