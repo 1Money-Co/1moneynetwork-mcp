@@ -411,7 +411,8 @@
         }
       }
     },
-    "required": ["calls"]
+    "required": ["calls"],
+    "description": "Run tool calls in parallel; fails on the first error. A batch cannot contain transactions.submit: send each transaction on its own, so its outcome is never lost."
   },
   "utils.safe_promise_line": {
     "type": "object",
@@ -430,6 +431,7 @@
         }
       }
     },
-    "required": ["calls"]
+    "required": ["calls"],
+    "description": "Run tool calls in order; drops the results of calls that fail. A batch cannot contain transactions.submit: send each transaction on its own, so its outcome is never lost."
   }
 }

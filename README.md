@@ -198,7 +198,7 @@ removed: l1client v0.8.13 and later answer every `/v1` write with HTTP 410.
 - `utils.safe_promise_all`
 - `utils.safe_promise_line`
 
-Batch tools (`utils.safe_promise_all` and `utils.safe_promise_line`) accept a `calls` array of `{ tool, input }` objects. The `safe_promise_all` variant executes in parallel and fails on the first error. The `safe_promise_line` variant executes sequentially and ignores errors.
+Batch tools (`utils.safe_promise_all` and `utils.safe_promise_line`) accept a `calls` array of `{ tool, input }` objects. The `safe_promise_all` variant executes in parallel and fails on the first error. The `safe_promise_line` variant executes sequentially and ignores errors. Because a batch drops or hides the errors of its calls, it refuses `transactions.submit` before it runs any call: send each transaction on its own, so its `submitted` state, hash and next step reach you.
 
 ## Schema
 

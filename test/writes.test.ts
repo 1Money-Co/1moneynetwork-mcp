@@ -199,3 +199,31 @@ describe("structured write errors", () => {
     expect(body).toMatchObject({ submitted: true, next_step: NEXT_STEP.hashMismatch });
   });
 });
+
+describe("batches never send", () => {
+  it.each(["utils.safe_promise_line", "utils.safe_promise_all"] as const)(
+    "%s refuses a submit before any call runs, so no outcome is lost",
+    async (batch) => {
+      const want = await expected(PAYMENT);
+      answerPost(want.authorized, "hang");
+      const { prepared, signature } = await prepareAndSign(PAYMENT);
+      const submitInput = { operation: prepared.operation, unsigned: prepared.unsigned, signature };
+
+      for (const tool of ["transactions.submit", "transactions_submit"]) {
+        const calls = [
+          { tool: "chain.get_chain_id", input: {} },
+          { tool, input: submitInput }
+        ];
+        await expect(h.call(batch, { calls })).rejects.toThrow(/cannot run in a batch\. Nothing was sent/);
+      }
+      expect(h.node.requests).toHaveLength(0);
+    }
+  );
+
+  it("reads still run in a batch", async () => {
+    h.node.on("GET", "/v1/chains/chain_id", { status: 200, body: { chain_id: CHAIN_ID } });
+    const read = { tool: "chain.get_chain_id", input: {} };
+    const result = resultJson(await h.call("utils.safe_promise_line", { calls: [read, read] }));
+    expect(result).toEqual([{ chain_id: CHAIN_ID }, { chain_id: CHAIN_ID }]);
+  });
+});
