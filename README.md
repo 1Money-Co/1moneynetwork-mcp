@@ -142,6 +142,52 @@ and the MCP client. Use it only with test keys.
 The legacy `/v1` write tools (`tokens.mint`, `transactions.payment`, `utils.sign_message`, ...) are
 removed: l1client v0.8.13 and later answer every `/v1` write with HTTP 410.
 
+## Token Authority Operations
+
+Mint, grant and revoke (including the master mint-burn rotation and minter allowances), pause and
+unpause, blacklist and whitelist, and metadata updates are token authority operations. From l1client
+v0.9.0, the node refuses their legacy envelopes. After activation it takes them only as the settled
+authority envelope (native operation 17), whose result its next checkpoint decides. This server builds
+only the settled envelope.
+
+`chain_get_envelope_mode` reads the mode from `GET /api/status`:
+
+| `envelope_mode` | `settled_active` | Meaning |
+|---|---|---|
+| `settled` | `true` | The node takes the settled envelope. |
+| `upgrade_gap` | `false` | The release is installed but not activated. No operation of the class can certify. |
+| `not_reported` | `false` | A release before v0.9.0. |
+| `unreadable`, `unrecognized` | `false` | The status gave no usable answer, or a mode this server does not know. |
+
+A token authority operation takes four calls:
+
+1. `tokens_prepare_authority_operation` with `kind` (`mint`, `authority`, `blacklist`, `whitelist`,
+   `pause` or `metadata`) and the operation's fields. When `settled_active` is `false`, it returns
+   `state: "not_active"` and prepares and sends nothing: try again after activation. Otherwise it
+   builds the settled envelope at the given chain and nonce, with the latest committed checkpoint as its
+   reference, and returns `signing_hash`. For a blacklist or whitelist operation, the token's privacy
+   decides the list that the node changes.
+2. Sign `signing_hash`.
+3. `transactions_submit` with `operation: "settledAuthority"`, `unsigned`, `memo` and the signature.
+4. `tokens_authority_operation_state` with the signer's address, `unsigned.nonce` and the
+   `transaction_hash`, until the state is `decided`:
+   - `pending`: not executed yet.
+   - `settling`: certified; its checkpoint decides the result. It is not a failure.
+   - `decided`: the receipt's `outcome` is `success`, `no_op` (with a `warning`: a no-op revoke means
+     another account can still hold the role), `soft_fail` (with its `reason`) or `failed`.
+   - `unknown`: it may have executed. Never report it as failed, and do not sign the intent again.
+
+A refused settled envelope had no effect. The submit result gives the `refusal` and the next step:
+
+| `refusal.kind` | Next step |
+|---|---|
+| `settled_envelope_not_active` | Send the same signed transaction after activation. |
+| `reference_checkpoint_not_committed` | Prepare and sign again after a short wait. |
+| `token_not_at_reference_checkpoint` | Prepare and sign again after a short wait. The token can still exist. |
+| `reference_checkpoint_too_old` | Prepare and sign again only if the transaction was never sent before; otherwise read it by hash first. |
+
+Clawback is not exposed.
+
 ## Example Prompts
 
 - "Get the current chain id."
@@ -162,6 +208,7 @@ removed: l1client v0.8.13 and later answer every `/v1` write with HTTP 410.
 ### chain
 
 - `chain.get_chain_id`
+- `chain.get_envelope_mode`
 
 ### checkpoints
 
@@ -177,6 +224,8 @@ removed: l1client v0.8.13 and later answer every `/v1` write with HTTP 410.
 - `tokens.prepare_burn`
 - `tokens.prepare_bridge_and_mint`
 - `tokens.prepare_burn_and_bridge`
+- `tokens.prepare_authority_operation`
+- `tokens.authority_operation_state`
 
 ### transactions
 

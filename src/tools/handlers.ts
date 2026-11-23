@@ -21,6 +21,7 @@ import * as sdkUtils from "@1money/protocol-ts-sdk/utils";
 import type { ProtocolClient } from "../client.js";
 import { formatError } from "../errors.js";
 import type { ToolName } from "../schemas/zod.js";
+import { authorityState, prepareAuthorityOperation, readEnvelopeModeView, type AuthorityKind } from "./authority.js";
 import { WriteFailure } from "./writeErrors.js";
 import { prepareWrite, signDigest, submitWrite, submittersOf, type WriteOperation } from "./writes.js";
 
@@ -137,6 +138,8 @@ export const createHandlers = (client: ProtocolClient): Record<ToolName, ToolHan
 
   actions["chain.get_chain_id"] = async () => client.api.chain.getChainId();
 
+  actions["chain.get_envelope_mode"] = async () => readEnvelopeModeView();
+
   actions["checkpoints.get_number"] = async () => client.api.checkpoints.getNumber();
 
   actions["checkpoints.get_by_hash"] = async (input) => {
@@ -201,6 +204,16 @@ export const createHandlers = (client: ProtocolClient): Record<ToolName, ToolHan
   actions["tokens.prepare_burn"] = prepareAction("tokenBurn");
   actions["tokens.prepare_bridge_and_mint"] = prepareAction("tokenBridgeAndMint");
   actions["tokens.prepare_burn_and_bridge"] = prepareAction("tokenBurnAndBridge");
+
+  actions["tokens.prepare_authority_operation"] = async (input) => {
+    const { kind, payload, memo } = input as { kind: AuthorityKind; payload: Record<string, unknown>; memo?: Memo };
+    return prepareAuthorityOperation(kind, payload, memo);
+  };
+
+  actions["tokens.authority_operation_state"] = async (input) => {
+    const { signer, nonce, transaction_hash } = input as { signer: string; nonce: number; transaction_hash: string };
+    return authorityState(signer, nonce, transaction_hash);
+  };
 
   const submitters = submittersOf(client.api);
   actions["transactions.submit"] = async (input) => {

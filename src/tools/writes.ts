@@ -30,7 +30,8 @@ export const WRITE_OPERATIONS = [
   "tokenIssue",
   "tokenBurn",
   "tokenBridgeAndMint",
-  "tokenBurnAndBridge"
+  "tokenBurnAndBridge",
+  "settledAuthority"
 ] as const;
 
 export type WriteOperation = (typeof WRITE_OPERATIONS)[number];
@@ -42,7 +43,8 @@ export const submittersOf = (api: ProtocolApiClient): Record<WriteOperation, Sub
   tokenIssue: api.tokens.issueToken,
   tokenBurn: api.tokens.burnToken,
   tokenBridgeAndMint: api.tokens.bridgeAndMint,
-  tokenBurnAndBridge: api.tokens.burnAndBridge
+  tokenBurnAndBridge: api.tokens.burnAndBridge,
+  settledAuthority: api.tokens.authorityOperation
 });
 
 const SIGN_THEN_SUBMIT =

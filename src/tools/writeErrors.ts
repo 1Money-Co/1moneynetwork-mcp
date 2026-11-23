@@ -15,11 +15,13 @@
  */
 
 import {
+  authorityRefusalOf,
   TransactionHashMismatchError,
   TransactionLockedError,
   TransactionOutcomeUnknownError,
   TransactionSubmissionError
 } from "@1money/protocol-ts-sdk";
+import type { AuthorityRefusal, AuthorityRefusalKind } from "@1money/protocol-ts-sdk";
 
 /**
  * Whether the node may hold the transaction. Only `false` makes signing the
@@ -37,6 +39,7 @@ export type WriteFailureBody = {
   status?: number;
   problem_type?: string;
   action?: string;
+  refusal?: AuthorityRefusal;
 };
 
 /**
@@ -76,7 +79,27 @@ export const notSent = (error: unknown) =>
     next_step: NEXT_STEP.fixInput
   });
 
-const refusalStep = (error: TransactionSubmissionError) => {
+/**
+ * Next steps of the token authority refusals. The legacy envelope refusal is
+ * left to the generic step: this server never sends a legacy authority
+ * envelope.
+ */
+const AUTHORITY_REFUSAL_STEP: Partial<Record<AuthorityRefusalKind, string>> = {
+  settled_envelope_not_active:
+    "This node does not take the settled envelope yet, and the transaction had no effect. Send the same signed transaction later, after activation.",
+  reference_checkpoint_not_committed:
+    "The node has not committed the reference checkpoint yet, and the transaction had no effect. Prepare again after a short wait and sign the new signing_hash.",
+  token_not_at_reference_checkpoint:
+    "The token is not in the reference checkpoint, and the transaction had no effect. This does not show that the token does not exist. Prepare again after a short wait and sign the new signing_hash.",
+  reference_checkpoint_too_old:
+    "The reference checkpoint is too old. Prepare and sign again with a new checkpoint only if this transaction was never sent before. If it was sent before, it may have executed: read its status and receipt by hash first."
+};
+
+const refusalStep = (error: TransactionSubmissionError, refusal?: AuthorityRefusal) => {
+  const authorityStep = refusal && AUTHORITY_REFUSAL_STEP[refusal.kind];
+  if (authorityStep) {
+    return authorityStep;
+  }
   if (error.nonceUsed) {
     return NEXT_STEP.nonceUsed;
   }
@@ -109,7 +132,14 @@ const sentFields = (error: {
 export const sendFailure = (error: unknown, transactionHash: string): WriteFailure => {
   const base = { error: nameOf(error), message: messageOf(error), transaction_hash: transactionHash };
   if (error instanceof TransactionSubmissionError) {
-    return new WriteFailure({ ...base, submitted: false, ...sentFields(error), next_step: refusalStep(error) });
+    const refusal = authorityRefusalOf(error);
+    return new WriteFailure({
+      ...base,
+      submitted: false,
+      ...sentFields(error),
+      ...(refusal && { refusal }),
+      next_step: refusalStep(error, refusal)
+    });
   }
   if (error instanceof TransactionLockedError) {
     return new WriteFailure({ ...base, submitted: true, ...sentFields(error), next_step: NEXT_STEP.held });
