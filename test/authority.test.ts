@@ -16,7 +16,7 @@
 
 import { createPrivateKeySigner, prepareTransactionV2, settledPayloadOf } from "@1money/protocol-ts-sdk";
 import type { LegacyAuthorityOperation } from "@1money/protocol-ts-sdk";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { NOT_ACTIVE_STEP } from "../src/tools/authority.js";
 import { NEXT_STEP } from "../src/tools/writeErrors.js";
@@ -299,6 +299,21 @@ describe("authority operation state", () => {
   it("pending: the nonce has not passed", async () => {
     stateNode(NONCE, notFound, notFound);
     expect(await readState()).toMatchObject({ state: "pending" });
+  });
+
+  it("logs nothing for the expected 404s of a pending operation", async () => {
+    stateNode(NONCE, notFound, notFound);
+    const logged: unknown[][] = [];
+    const spies = (["error", "warn", "log", "info"] as const).map((level) =>
+      vi.spyOn(console, level).mockImplementation((...args) => void logged.push(args))
+    );
+    try {
+      await readState();
+    } finally {
+      spies.forEach((spy) => spy.mockRestore());
+    }
+    expect(h.node.requests.filter((request) => request.path.includes("by_hash"))).toHaveLength(2);
+    expect(logged).toEqual([]);
   });
 
   it("settling: certified, waiting for its checkpoint; not a failure", async () => {
