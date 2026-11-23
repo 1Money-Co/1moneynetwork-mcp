@@ -15,11 +15,14 @@
  */
 
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { Memo, Signature, ZeroXString } from "@1money/protocol-ts-sdk";
 import * as sdkUtils from "@1money/protocol-ts-sdk/utils";
 
 import type { ProtocolClient } from "../client.js";
 import { formatError } from "../errors.js";
 import type { ToolName } from "../schemas/zod.js";
+import { WriteFailure } from "./writeErrors.js";
+import { prepareWrite, signDigest, submitWrite, submittersOf, type WriteOperation } from "./writes.js";
 
 /**
  * MCP tool handler signature.
@@ -45,10 +48,8 @@ const getUtil = <T extends keyof typeof sdkUtils>(key: T) => {
   throw new Error(`Missing SDK util: ${String(key)}`);
 };
 
-const calcTxHash = getUtil("calcTxHash");
 const deriveTokenAddress = getUtil("deriveTokenAddress");
 const encodePayload = getUtil("encodePayload");
-const signMessage = getUtil("signMessage");
 const sdkToHex = getUtil("toHex");
 const _typeof = getUtil("_typeof");
 
@@ -61,17 +62,44 @@ const toToolResult = (data: unknown): CallToolResult => ({
   ]
 });
 
-const runTool = async (toolName: string, action: () => Promise<unknown>) => {
+const runTool = async (toolName: string, action: () => Promise<unknown>): Promise<CallToolResult> => {
   try {
     const data = await action();
     return toToolResult(data);
   } catch (error) {
+    if (error instanceof WriteFailure) {
+      return { ...toToolResult(error.body), isError: true };
+    }
     throw new Error(`${toolName} failed: ${formatError(error)}`);
   }
 };
 
+type PrepareInput = { unsigned: Record<string, unknown>; memo?: Memo };
+
+type SubmitInput = {
+  operation: WriteOperation;
+  unsigned: Record<string, unknown>;
+  memo?: Memo;
+  signature: Signature;
+};
+
 const isBatchTool = (toolName: string) =>
   toolName === "utils.safe_promise_all" || toolName === "utils.safe_promise_line";
+
+// A batch drops (safe_promise_line) or hides (safe_promise_all) the errors of
+// its calls, so it must never send: a send's outcome (submitted, hash, next
+// step) is what lets the caller avoid signing the same intent twice.
+const SENDING_TOOLS: ReadonlySet<string> = new Set(["transactions_submit"]);
+
+const refuseSendingCalls = (calls: BatchCall[]) => {
+  for (const call of calls) {
+    if (SENDING_TOOLS.has(call.tool.replaceAll(".", "_"))) {
+      throw new Error(
+        `${call.tool} sends a transaction and cannot run in a batch. Nothing was sent. Call it on its own, so its outcome is never lost.`
+      );
+    }
+  }
+};
 
 /**
  * Builds MCP tool handlers backed by the protocol SDK.
@@ -131,56 +159,6 @@ export const createHandlers = (client: ProtocolClient): Record<ToolName, ToolHan
     return client.api.tokens.getTokenMetadata(token);
   };
 
-  actions["tokens.manage_blacklist"] = async (input) => {
-    const { request } = input as { request: Record<string, unknown> };
-    return client.api.tokens.manageBlacklist(request as any);
-  };
-
-  actions["tokens.manage_whitelist"] = async (input) => {
-    const { request } = input as { request: Record<string, unknown> };
-    return client.api.tokens.manageWhitelist(request as any);
-  };
-
-  actions["tokens.burn"] = async (input) => {
-    const { request } = input as { request: Record<string, unknown> };
-    return client.api.tokens.burnToken(request as any);
-  };
-
-  actions["tokens.grant_authority"] = async (input) => {
-    const { request } = input as { request: Record<string, unknown> };
-    return client.api.tokens.grantAuthority(request as any);
-  };
-
-  actions["tokens.issue"] = async (input) => {
-    const { request } = input as { request: Record<string, unknown> };
-    return client.api.tokens.issueToken(request as any);
-  };
-
-  actions["tokens.mint"] = async (input) => {
-    const { request } = input as { request: Record<string, unknown> };
-    return client.api.tokens.mintToken(request as any);
-  };
-
-  actions["tokens.pause"] = async (input) => {
-    const { request } = input as { request: Record<string, unknown> };
-    return client.api.tokens.pauseToken(request as any);
-  };
-
-  actions["tokens.update_metadata"] = async (input) => {
-    const { request } = input as { request: Record<string, unknown> };
-    return client.api.tokens.updateMetadata(request as any);
-  };
-
-  actions["tokens.bridge_and_mint"] = async (input) => {
-    const { request } = input as { request: Record<string, unknown> };
-    return client.api.tokens.bridgeAndMint(request as any);
-  };
-
-  actions["tokens.burn_and_bridge"] = async (input) => {
-    const { request } = input as { request: Record<string, unknown> };
-    return client.api.tokens.burnAndBridge(request as any);
-  };
-
   actions["transactions.get_by_hash"] = async (input) => {
     const { hash } = input as { hash: string };
     return client.api.transactions.getByHash(hash);
@@ -196,18 +174,38 @@ export const createHandlers = (client: ProtocolClient): Record<ToolName, ToolHan
     return client.api.transactions.getFinalizedByHash(hash);
   };
 
-  actions["transactions.estimate_fee"] = async (input) => {
-    const { from, value, token } = input as {
-      from: string;
-      value: string | number;
-      token?: string;
-    };
-    return client.api.transactions.estimateFee(from, String(value), token);
+  actions["transactions.get_status_by_hash"] = async (input) => {
+    const { hash } = input as { hash: string };
+    return client.api.transactions.getStatusByHash(hash);
   };
 
-  actions["transactions.payment"] = async (input) => {
-    const { request } = input as { request: Record<string, unknown> };
-    return client.api.transactions.payment(request as any);
+  actions["transactions.estimate_fee"] = async (input) => {
+    const { from, to, value, token } = input as {
+      from: string;
+      to: string;
+      value: string | number;
+      token: string;
+    };
+    return client.api.transactions.estimateFee(from, to, String(value), token);
+  };
+
+  const prepareAction =
+    (operation: WriteOperation): ToolAction =>
+    async (input) => {
+      const { unsigned, memo } = input as PrepareInput;
+      return prepareWrite(operation, unsigned, memo);
+    };
+
+  actions["transactions.prepare_payment"] = prepareAction("payment");
+  actions["tokens.prepare_issue"] = prepareAction("tokenIssue");
+  actions["tokens.prepare_burn"] = prepareAction("tokenBurn");
+  actions["tokens.prepare_bridge_and_mint"] = prepareAction("tokenBridgeAndMint");
+  actions["tokens.prepare_burn_and_bridge"] = prepareAction("tokenBurnAndBridge");
+
+  const submitters = submittersOf(client.api);
+  actions["transactions.submit"] = async (input) => {
+    const { operation, unsigned, memo, signature } = input as SubmitInput;
+    return submitWrite(submitters[operation], operation, unsigned, signature, memo);
   };
 
   actions["utils.derive_token_address"] = async (input) => {
@@ -218,10 +216,9 @@ export const createHandlers = (client: ProtocolClient): Record<ToolName, ToolHan
     return { address: deriveTokenAddress(wallet_address, mint_address) };
   };
 
-  actions["utils.sign_message"] = async (input) => {
-    const { payload, private_key } = input as { payload: unknown; private_key: string };
-    const signature = await signMessage(payload as any, private_key as `0x${string}`);
-    return signature;
+  actions["utils.sign_digest"] = async (input) => {
+    const { signing_hash, private_key } = input as { signing_hash: ZeroXString; private_key: ZeroXString };
+    return signDigest(signing_hash, private_key);
   };
 
   actions["utils.encode_payload"] = async (input) => {
@@ -235,14 +232,6 @@ export const createHandlers = (client: ProtocolClient): Record<ToolName, ToolHan
     return { hex: sdkToHex(value as any) };
   };
 
-  actions["utils.calc_tx_hash"] = async (input) => {
-    const { payload, signature } = input as {
-      payload: unknown;
-      signature: { r: string; s: string; v: number | boolean };
-    };
-    return { hash: calcTxHash(payload as any, signature as any) };
-  };
-
   actions["utils.typeof"] = async (input) => {
     const { value } = input as { value: unknown };
     return { type: _typeof(value) };
@@ -250,12 +239,14 @@ export const createHandlers = (client: ProtocolClient): Record<ToolName, ToolHan
 
   actions["utils.safe_promise_all"] = async (input) => {
     const { calls } = input as BatchInput;
+    refuseSendingCalls(calls);
     const promises = calls.map((call) => runAction(call.tool, call.input));
     return Promise.all(promises);
   };
 
   actions["utils.safe_promise_line"] = async (input) => {
     const { calls } = input as BatchInput;
+    refuseSendingCalls(calls);
     const results: unknown[] = [];
     for (const call of calls) {
       try {

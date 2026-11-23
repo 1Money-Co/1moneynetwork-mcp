@@ -88,9 +88,11 @@ env = { ONEMONEY_PROTOCOL_NETWORK = "testnet" }
 
 ## Example Tool Calls
 
+MCP tool names use underscores (`accounts_get_nonce`). The `schemas/tools.json` keys use dots.
+
 ```json
 {
-  "tool": "accounts.get_nonce",
+  "tool": "accounts_get_nonce",
   "input": {
     "address": "0x9E1E9688A44D058fF181Ed64ddFAFbBE5CC74ff3"
   }
@@ -99,40 +101,55 @@ env = { ONEMONEY_PROTOCOL_NETWORK = "testnet" }
 
 ```json
 {
-  "tool": "transactions.estimate_fee",
+  "tool": "transactions_estimate_fee",
   "input": {
     "from": "0x9E1E9688A44D058fF181Ed64ddFAFbBE5CC74ff3",
+    "to": "0x1111111111111111111111111111111111111111",
     "value": "1000000000",
     "token": "0x2cd8999Be299373D7881f4aDD11510030ad1412F"
   }
 }
 ```
 
-```json
-{
-  "tool": "utils.sign_message",
-  "input": {
-    "payload": [
-      1212101,
-      2,
-      "0x0000000000000000000000000000000000000000",
-      "1000000000000000000",
-      "0x0000000000000000000000000000000000000000"
-    ],
-    "private_key": "0xYOUR_PRIVATE_KEY"
-  }
-}
+## Sending Transactions
+
+Every write goes to the node's `/v2` write API, which signs a domain-separated digest. The server never
+holds a key. A write takes three calls:
+
+```text
+prepare tool ──> signing_hash ──> sign (your wallet, or utils_sign_digest) ──> transactions_submit
 ```
 
-Note: `utils.sign_message` accepts a private key directly. Avoid using real keys in shared environments.
+1. Call a prepare tool (for example `transactions_prepare_payment`) with the unsigned payload. Read
+   `chain_id` from `chain_get_chain_id` and the signer's next `nonce` from `accounts_get_nonce`. The
+   tool validates the payload, sends nothing, and returns `operation`, `unsigned`, `memo` and
+   `signing_hash`.
+2. Sign `signing_hash` with the signer's secp256k1 key.
+3. Call `transactions_submit` with `operation`, `unsigned` and `memo` unchanged, and the signature. It
+   sends the transaction once and returns its `transaction_hash`.
+
+When a submit fails, the result is an error with `submitted` and `next_step`:
+
+| `submitted` | Meaning | What to do |
+|---|---|---|
+| `false` | Nothing was sent, or the node refused it with no effect. | Follow `next_step`: fix the input, or send the same signed transaction later or to another node. |
+| `true` | The node holds the transaction. | Do not sign this intent again. Read it with `transactions_get_status_by_hash` and `transactions_get_receipt_by_hash`. |
+| `"unknown"` | The transaction may execute. | Do not sign this intent again. Read its status and receipt by hash first. |
+
+`utils_sign_digest` takes a private key in the tool input, so the key passes through the conversation
+and the MCP client. Use it only with test keys.
+
+The legacy `/v1` write tools (`tokens.mint`, `transactions.payment`, `utils.sign_message`, ...) are
+removed: l1client v0.8.13 and later answer every `/v1` write with HTTP 410.
 
 ## Example Prompts
 
 - "Get the current chain id."
 - "Fetch the latest checkpoint number on testnet."
-- "Estimate fee for sending 1000000000 units from 0x... with token 0x...."
+- "Estimate the fee for sending 1000000000 units from 0x... to 0x... with token 0x...."
 - "Get token metadata for 0x...."
 - "Derive the token account address for wallet 0x... and mint 0x...."
+- "Prepare a payment of 1000 units of token 0x... from 0x... to 0x...."
 
 ## Tools
 
@@ -156,37 +173,41 @@ Note: `utils.sign_message` accepts a private key directly. Avoid using real keys
 ### tokens
 
 - `tokens.get_token_metadata`
-- `tokens.manage_blacklist`
-- `tokens.manage_whitelist`
-- `tokens.burn`
-- `tokens.grant_authority`
-- `tokens.issue`
-- `tokens.mint`
-- `tokens.pause`
-- `tokens.update_metadata`
-- `tokens.bridge_and_mint`
-- `tokens.burn_and_bridge`
+- `tokens.prepare_issue`
+- `tokens.prepare_burn`
+- `tokens.prepare_bridge_and_mint`
+- `tokens.prepare_burn_and_bridge`
 
 ### transactions
 
 - `transactions.get_by_hash`
+- `transactions.get_status_by_hash`
 - `transactions.get_receipt_by_hash`
 - `transactions.get_finalized_by_hash`
 - `transactions.estimate_fee`
-- `transactions.payment`
+- `transactions.prepare_payment`
+- `transactions.submit`
 
 ### utils
 
 - `utils.derive_token_address`
-- `utils.sign_message`
+- `utils.sign_digest`
 - `utils.encode_payload`
 - `utils.to_hex`
-- `utils.calc_tx_hash`
 - `utils.typeof`
 - `utils.safe_promise_all`
 - `utils.safe_promise_line`
 
-Batch tools (`utils.safe_promise_all` and `utils.safe_promise_line`) accept a `calls` array of `{ tool, input }` objects. The `safe_promise_all` variant executes in parallel and fails on the first error. The `safe_promise_line` variant executes sequentially and ignores errors.
+Batch tools (`utils.safe_promise_all` and `utils.safe_promise_line`) accept a `calls` array of `{ tool, input }` objects. The `safe_promise_all` variant executes in parallel and fails on the first error. The `safe_promise_line` variant executes sequentially and ignores errors. Because a batch drops or hides the errors of its calls, it refuses `transactions.submit` before it runs any call: send each transaction on its own, so its `submitted` state, hash and next step reach you.
+
 ## Schema
 
-`schemas/tools.json` is the JSON Schema source for all tools.
+`schemas/tools.json` is the JSON Schema source for all tools. After you change it, run
+`pnpm generate-schemas` to regenerate `src/schemas/zod.ts`.
+
+## Development
+
+```bash
+pnpm install
+pnpm check   # typecheck, unit tests against a mock node, build
+```

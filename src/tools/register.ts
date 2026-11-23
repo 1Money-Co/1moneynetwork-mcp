@@ -32,6 +32,6 @@ export const registerTools = (server: McpServer, client: ProtocolClient) => {
       throw new Error(`Missing handler for tool ${toolName}`);
     }
     const mcpToolName = toolName.replaceAll(".", "_");
-    server.registerTool(mcpToolName, { inputSchema: schema }, handler);
+    server.registerTool(mcpToolName, { description: schema.description, inputSchema: schema }, handler);
   }
 };

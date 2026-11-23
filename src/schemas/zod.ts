@@ -45,38 +45,23 @@ toolSchemas["checkpoints.get_receipts_by_number"] = CheckpointsGetReceiptsByNumb
 const TokensGetTokenMetadataSchema = z.object({ "token": z.string() }).strict()
 toolSchemas["tokens.get_token_metadata"] = TokensGetTokenMetadataSchema;
 
-const TokensManageBlacklistSchema = z.object({ "request": z.object({ "chain_id": z.number(), "nonce": z.number(), "action": z.enum(["Add","Remove"]), "address": z.string(), "token": z.string(), "signature": z.object({ "r": z.string(), "s": z.string(), "v": z.union([z.number(), z.boolean()]) }).strict() }).strict() }).strict()
-toolSchemas["tokens.manage_blacklist"] = TokensManageBlacklistSchema;
+const TokensPrepareIssueSchema = z.object({ "unsigned": z.object({ "chain_id": z.number().describe("Chain id from chain_get_chain_id"), "nonce": z.number().describe("The signer's next nonce from accounts_get_nonce"), "symbol": z.string(), "name": z.string(), "decimals": z.number(), "master_authority": z.string(), "is_private": z.boolean(), "clawback_enabled": z.boolean().describe("Default true").optional() }).strict(), "memo": z.object({ "type": z.string().optional(), "format": z.string().optional(), "data": z.string().optional() }).strict().describe("Optional transaction memo").optional() }).strict().describe("Prepare a v2 token issue. Sends nothing. Returns signing_hash: sign it (utils_sign_digest or your own wallet), then call transactions_submit with the returned operation, unsigned and memo, and the signature.")
+toolSchemas["tokens.prepare_issue"] = TokensPrepareIssueSchema;
 
-const TokensManageWhitelistSchema = z.object({ "request": z.object({ "chain_id": z.number(), "nonce": z.number(), "action": z.enum(["Add","Remove"]), "address": z.string(), "token": z.string(), "signature": z.object({ "r": z.string(), "s": z.string(), "v": z.union([z.number(), z.boolean()]) }).strict() }).strict() }).strict()
-toolSchemas["tokens.manage_whitelist"] = TokensManageWhitelistSchema;
+const TokensPrepareBurnSchema = z.object({ "unsigned": z.object({ "chain_id": z.number().describe("Chain id from chain_get_chain_id"), "nonce": z.number().describe("The signer's next nonce from accounts_get_nonce"), "value": z.string().describe("Amount in the token's base unit"), "token": z.string().describe("Token address") }).strict(), "memo": z.object({ "type": z.string().optional(), "format": z.string().optional(), "data": z.string().optional() }).strict().describe("Optional transaction memo").optional() }).strict().describe("Prepare a v2 burn of the signer's own tokens. Sends nothing. Returns signing_hash: sign it (utils_sign_digest or your own wallet), then call transactions_submit with the returned operation, unsigned and memo, and the signature.")
+toolSchemas["tokens.prepare_burn"] = TokensPrepareBurnSchema;
 
-const TokensBurnSchema = z.object({ "request": z.object({ "chain_id": z.number(), "nonce": z.number(), "recipient": z.string(), "value": z.string(), "token": z.string(), "signature": z.object({ "r": z.string(), "s": z.string(), "v": z.union([z.number(), z.boolean()]) }).strict() }).strict() }).strict()
-toolSchemas["tokens.burn"] = TokensBurnSchema;
+const TokensPrepareBridgeAndMintSchema = z.object({ "unsigned": z.object({ "chain_id": z.number().describe("Chain id from chain_get_chain_id"), "nonce": z.number().describe("The signer's next nonce from accounts_get_nonce"), "recipient": z.string(), "value": z.string(), "token": z.string(), "source_chain_id": z.number(), "source_tx_hash": z.string(), "bridge_metadata": z.string() }).strict(), "memo": z.object({ "type": z.string().optional(), "format": z.string().optional(), "data": z.string().optional() }).strict().describe("Optional transaction memo").optional() }).strict().describe("Prepare a v2 bridge-and-mint. Sends nothing. Returns signing_hash: sign it (utils_sign_digest or your own wallet), then call transactions_submit with the returned operation, unsigned and memo, and the signature.")
+toolSchemas["tokens.prepare_bridge_and_mint"] = TokensPrepareBridgeAndMintSchema;
 
-const TokensGrantAuthoritySchema = z.object({ "request": z.object({ "chain_id": z.number(), "nonce": z.number(), "action": z.enum(["Grant","Revoke"]), "authority_type": z.enum(["MasterMintBurn","MintBurnTokens","Pause","ManageList","UpdateMetadata","Bridge"]), "authority_address": z.string(), "token": z.string(), "value": z.string().optional(), "signature": z.object({ "r": z.string(), "s": z.string(), "v": z.union([z.number(), z.boolean()]) }).strict() }).strict() }).strict()
-toolSchemas["tokens.grant_authority"] = TokensGrantAuthoritySchema;
-
-const TokensIssueSchema = z.object({ "request": z.object({ "chain_id": z.number(), "nonce": z.number(), "symbol": z.string(), "name": z.string(), "decimals": z.number(), "master_authority": z.string(), "is_private": z.boolean(), "signature": z.object({ "r": z.string(), "s": z.string(), "v": z.union([z.number(), z.boolean()]) }).strict() }).strict() }).strict()
-toolSchemas["tokens.issue"] = TokensIssueSchema;
-
-const TokensMintSchema = z.object({ "request": z.object({ "chain_id": z.number(), "nonce": z.number(), "recipient": z.string(), "value": z.string(), "token": z.string(), "signature": z.object({ "r": z.string(), "s": z.string(), "v": z.union([z.number(), z.boolean()]) }).strict() }).strict() }).strict()
-toolSchemas["tokens.mint"] = TokensMintSchema;
-
-const TokensPauseSchema = z.object({ "request": z.object({ "chain_id": z.number(), "nonce": z.number(), "action": z.enum(["Pause","Unpause"]), "token": z.string(), "signature": z.object({ "r": z.string(), "s": z.string(), "v": z.union([z.number(), z.boolean()]) }).strict() }).strict() }).strict()
-toolSchemas["tokens.pause"] = TokensPauseSchema;
-
-const TokensUpdateMetadataSchema = z.object({ "request": z.object({ "chain_id": z.number(), "nonce": z.number(), "name": z.string(), "uri": z.string(), "token": z.string(), "additional_metadata": z.array(z.object({ "key": z.string(), "value": z.string() }).strict()), "signature": z.object({ "r": z.string(), "s": z.string(), "v": z.union([z.number(), z.boolean()]) }).strict() }).strict() }).strict()
-toolSchemas["tokens.update_metadata"] = TokensUpdateMetadataSchema;
-
-const TokensBridgeAndMintSchema = z.object({ "request": z.object({ "chain_id": z.number(), "nonce": z.number(), "recipient": z.string(), "value": z.string(), "token": z.string(), "source_chain_id": z.number(), "source_tx_hash": z.string(), "bridge_metadata": z.string(), "signature": z.object({ "r": z.string(), "s": z.string(), "v": z.union([z.number(), z.boolean()]) }).strict() }).strict() }).strict()
-toolSchemas["tokens.bridge_and_mint"] = TokensBridgeAndMintSchema;
-
-const TokensBurnAndBridgeSchema = z.object({ "request": z.object({ "bridge_metadata": z.string(), "chain_id": z.number(), "destination_address": z.string(), "destination_chain_id": z.number(), "escrow_fee": z.string(), "nonce": z.number(), "sender": z.string(), "token": z.string(), "value": z.string(), "signature": z.object({ "r": z.string(), "s": z.string(), "v": z.union([z.number(), z.boolean()]) }).strict() }).strict() }).strict()
-toolSchemas["tokens.burn_and_bridge"] = TokensBurnAndBridgeSchema;
+const TokensPrepareBurnAndBridgeSchema = z.object({ "unsigned": z.object({ "chain_id": z.number().describe("Chain id from chain_get_chain_id"), "nonce": z.number().describe("The signer's next nonce from accounts_get_nonce"), "sender": z.string(), "value": z.string(), "token": z.string(), "destination_chain_id": z.number(), "destination_address": z.string(), "escrow_fee": z.string(), "bridge_metadata": z.string(), "bridge_param": z.string().describe("0x-prefixed hex bytes") }).strict(), "memo": z.object({ "type": z.string().optional(), "format": z.string().optional(), "data": z.string().optional() }).strict().describe("Optional transaction memo").optional() }).strict().describe("Prepare a v2 burn-and-bridge. Sends nothing. Returns signing_hash: sign it (utils_sign_digest or your own wallet), then call transactions_submit with the returned operation, unsigned and memo, and the signature.")
+toolSchemas["tokens.prepare_burn_and_bridge"] = TokensPrepareBurnAndBridgeSchema;
 
 const TransactionsGetByHashSchema = z.object({ "hash": z.string() }).strict()
 toolSchemas["transactions.get_by_hash"] = TransactionsGetByHashSchema;
+
+const TransactionsGetStatusByHashSchema = z.object({ "hash": z.string() }).strict().describe("Read a transaction's status by hash: pending, certified_pending_checkpoint, checkpointed or finalized.")
+toolSchemas["transactions.get_status_by_hash"] = TransactionsGetStatusByHashSchema;
 
 const TransactionsGetReceiptByHashSchema = z.object({ "hash": z.string() }).strict()
 toolSchemas["transactions.get_receipt_by_hash"] = TransactionsGetReceiptByHashSchema;
@@ -84,17 +69,20 @@ toolSchemas["transactions.get_receipt_by_hash"] = TransactionsGetReceiptByHashSc
 const TransactionsGetFinalizedByHashSchema = z.object({ "hash": z.string() }).strict()
 toolSchemas["transactions.get_finalized_by_hash"] = TransactionsGetFinalizedByHashSchema;
 
-const TransactionsEstimateFeeSchema = z.object({ "from": z.string(), "value": z.union([z.string(), z.number()]), "token": z.string().optional() }).strict()
+const TransactionsEstimateFeeSchema = z.object({ "from": z.string().describe("Sender address"), "to": z.string().describe("Recipient address"), "value": z.union([z.string(), z.number()]), "token": z.string().describe("Token address") }).strict().describe("Estimate the fee of a payment.")
 toolSchemas["transactions.estimate_fee"] = TransactionsEstimateFeeSchema;
 
-const TransactionsPaymentSchema = z.object({ "request": z.object({ "chain_id": z.number(), "nonce": z.number(), "recipient": z.string(), "value": z.string(), "token": z.string(), "signature": z.object({ "r": z.string(), "s": z.string(), "v": z.union([z.number(), z.boolean()]) }).strict() }).strict() }).strict()
-toolSchemas["transactions.payment"] = TransactionsPaymentSchema;
+const TransactionsPreparePaymentSchema = z.object({ "unsigned": z.object({ "chain_id": z.number().describe("Chain id from chain_get_chain_id"), "nonce": z.number().describe("The signer's next nonce from accounts_get_nonce"), "recipient": z.string(), "value": z.string().describe("Amount in the token's base unit"), "token": z.string().describe("Token address") }).strict(), "memo": z.object({ "type": z.string().optional(), "format": z.string().optional(), "data": z.string().optional() }).strict().describe("Optional transaction memo").optional() }).strict().describe("Prepare a v2 payment. Sends nothing. Returns signing_hash: sign it (utils_sign_digest or your own wallet), then call transactions_submit with the returned operation, unsigned and memo, and the signature.")
+toolSchemas["transactions.prepare_payment"] = TransactionsPreparePaymentSchema;
+
+const TransactionsSubmitSchema = z.object({ "operation": z.enum(["payment","tokenIssue","tokenBurn","tokenBridgeAndMint","tokenBurnAndBridge"]).describe("The operation a prepare tool returned"), "unsigned": z.record(z.string(), z.any()).describe("The unsigned payload a prepare tool returned, unchanged"), "memo": z.object({ "type": z.string().optional(), "format": z.string().optional(), "data": z.string().optional() }).strict().describe("Optional transaction memo").optional(), "signature": z.object({ "r": z.string().describe("0x-prefixed 32-byte hex"), "s": z.string().describe("0x-prefixed 32-byte hex, low-S"), "v": z.union([z.number(), z.boolean()]) }).strict().describe("secp256k1 signature of signing_hash") }).strict().describe("Authorize a prepared v2 transaction with its signature and send it once to POST /v2. On an error, the result says whether it was submitted (false, true or \"unknown\") and the next step. Never sign the same intent again after submitted true or \"unknown\": read the status by hash first.")
+toolSchemas["transactions.submit"] = TransactionsSubmitSchema;
 
 const UtilsDeriveTokenAddressSchema = z.object({ "wallet_address": z.string(), "mint_address": z.string() }).strict()
 toolSchemas["utils.derive_token_address"] = UtilsDeriveTokenAddressSchema;
 
-const UtilsSignMessageSchema = z.object({ "payload": z.union([z.string(), z.number(), z.boolean(), z.record(z.string(), z.any()), z.array(z.any()), z.null()]), "private_key": z.string() }).strict()
-toolSchemas["utils.sign_message"] = UtilsSignMessageSchema;
+const UtilsSignDigestSchema = z.object({ "signing_hash": z.string().describe("0x-prefixed 32-byte digest from a prepare tool"), "private_key": z.string() }).strict().describe("Sign a 32-byte digest with a secp256k1 private key. The key passes through this conversation: use it only with test keys.")
+toolSchemas["utils.sign_digest"] = UtilsSignDigestSchema;
 
 const UtilsEncodePayloadSchema = z.object({ "payload": z.union([z.string(), z.number(), z.boolean(), z.record(z.string(), z.any()), z.array(z.any()), z.null()]) }).strict()
 toolSchemas["utils.encode_payload"] = UtilsEncodePayloadSchema;
@@ -102,16 +90,13 @@ toolSchemas["utils.encode_payload"] = UtilsEncodePayloadSchema;
 const UtilsToHexSchema = z.object({ "value": z.any() }).strict()
 toolSchemas["utils.to_hex"] = UtilsToHexSchema;
 
-const UtilsCalcTxHashSchema = z.object({ "payload": z.union([z.string(), z.number(), z.boolean(), z.record(z.string(), z.any()), z.array(z.any()), z.null()]), "signature": z.object({ "r": z.string(), "s": z.string(), "v": z.union([z.number(), z.boolean()]) }).strict() }).strict()
-toolSchemas["utils.calc_tx_hash"] = UtilsCalcTxHashSchema;
-
 const UtilsTypeofSchema = z.object({ "value": z.any() }).strict()
 toolSchemas["utils.typeof"] = UtilsTypeofSchema;
 
-const UtilsSafePromiseAllSchema = z.object({ "calls": z.array(z.object({ "tool": z.string(), "input": z.record(z.string(), z.any()) }).strict()) }).strict()
+const UtilsSafePromiseAllSchema = z.object({ "calls": z.array(z.object({ "tool": z.string(), "input": z.record(z.string(), z.any()) }).strict()) }).strict().describe("Run tool calls in parallel; fails on the first error. A batch cannot contain transactions.submit: send each transaction on its own, so its outcome is never lost.")
 toolSchemas["utils.safe_promise_all"] = UtilsSafePromiseAllSchema;
 
-const UtilsSafePromiseLineSchema = z.object({ "calls": z.array(z.object({ "tool": z.string(), "input": z.record(z.string(), z.any()) }).strict()) }).strict()
+const UtilsSafePromiseLineSchema = z.object({ "calls": z.array(z.object({ "tool": z.string(), "input": z.record(z.string(), z.any()) }).strict()) }).strict().describe("Run tool calls in order; drops the results of calls that fail. A batch cannot contain transactions.submit: send each transaction on its own, so its outcome is never lost.")
 toolSchemas["utils.safe_promise_line"] = UtilsSafePromiseLineSchema;
 
 export type ToolName = keyof typeof toolSchemas;
