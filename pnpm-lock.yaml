@@ -19,8 +19,8 @@ importers:
   .:
     dependencies:
       '@1money/protocol-ts-sdk':
-        specifier: 3.2.0
-        version: 3.2.0(@ethereumjs/rlp@10.1.0)(axios@1.16.0)(viem@2.44.4(typescript@5.9.3)(zod@4.3.6))
+        specifier: 3.3.0
+        version: 3.3.0(@ethereumjs/rlp@10.1.0)(axios@1.16.0)(viem@2.44.4(typescript@5.9.3)(zod@4.3.6))
       '@ethereumjs/rlp':
         specifier: ^10.0.0
         version: 10.1.0
@@ -61,8 +61,8 @@ importers:
 
 packages:
 
-  '@1money/protocol-ts-sdk@3.2.0':
-    resolution: {integrity: sha512-B4aIHlfeLIYfV6E+bt9KBfEMKOqqAc8HOsz0jwiwmFWBoT0hxMQTRD8N7vZ8EDjV5H6JvaJUEnac5n4FPbQR6A==}
+  '@1money/protocol-ts-sdk@3.3.0':
+    resolution: {integrity: sha512-FEwjW8S59wAF47xaM9vkZth/Nm+kXOEu5YBFgGjGT09Il244KU8qOEXg8BeuTzQOl8Lms102PvU0siNrkNC42A==}
     peerDependencies:
       '@ethereumjs/rlp': '>=10.0.0 <11.0.0'
       axios: '>=1.15.0 <2.0.0'
@@ -1137,7 +1137,7 @@ packages:
 
 snapshots:
 
-  '@1money/protocol-ts-sdk@3.2.0(@ethereumjs/rlp@10.1.0)(axios@1.16.0)(viem@2.44.4(typescript@5.9.3)(zod@4.3.6))':
+  '@1money/protocol-ts-sdk@3.3.0(@ethereumjs/rlp@10.1.0)(axios@1.16.0)(viem@2.44.4(typescript@5.9.3)(zod@4.3.6))':
     dependencies:
       '@ethereumjs/rlp': 10.1.0
       axios: 1.16.0

@@ -19,7 +19,7 @@ import type { AddressInfo } from "node:net";
 
 export const PROBLEM = "https://developer.1moneynetwork.com/problem/";
 
-export type Answer = { status: number; body: unknown } | "hang";
+export type Answer = { status: number; body: unknown; headers?: Record<string, string> } | "hang";
 
 export type Request = { method: string; path: string; query: URLSearchParams; body: unknown };
 
@@ -54,8 +54,8 @@ export class MockNode {
       if (answer === "hang") {
         return;
       }
-      const { status, body } = answer ?? { status: 404, body: { title: "Not Found", status: 404 } };
-      res.writeHead(status, { "content-type": "application/json" });
+      const { status, body, headers } = answer ?? { status: 404, body: { title: "Not Found", status: 404 } };
+      res.writeHead(status, { "content-type": "application/json", ...headers });
       res.end(JSON.stringify(body));
     });
     await new Promise<void>((resolve) => this.server!.listen(0, "127.0.0.1", resolve));

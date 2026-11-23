@@ -189,6 +189,18 @@ describe("structured write errors", () => {
     expect(body).toMatchObject({ submitted: "unknown", next_step: NEXT_STEP.unknown });
   });
 
+  it.each([422, 429])("a %d with no action is an unknown outcome, never a refusal", async (status) => {
+    const { body } = await submitWith({ status, body: { message: "no action member" } });
+    expect(body).toMatchObject({ submitted: "unknown", next_step: NEXT_STEP.unknown, status });
+    expect(h.node.posts()).toHaveLength(1);
+  });
+
+  it("a redirected submit is an unknown outcome, and the redirect is not followed", async () => {
+    const { body } = await submitWith({ status: 307, body: {}, headers: { location: "/v2/elsewhere" } });
+    expect(body).toMatchObject({ submitted: "unknown", next_step: NEXT_STEP.unknown });
+    expect(h.node.requests.map((request) => request.path)).toEqual(["/v2/transactions/payment"]);
+  });
+
   it("a timeout is an unknown outcome", async () => {
     const { body } = await submitWith("hang");
     expect(body).toMatchObject({ submitted: "unknown", next_step: NEXT_STEP.unknown });
